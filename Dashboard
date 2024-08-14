@@ -1,0 +1,56 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Load the CSV data into a DataFrame
+file_path = 'rec4.csv'  # Update with your file path if needed
+data = pd.read_csv(file_path)
+
+# Convert date column to datetime
+data['P_TXNDATE'] = pd.to_datetime(data['P_TXNDATE'])
+
+# Summary Table by Date
+daily_summary = data.groupby('P_TXNDATE').agg({
+    'DEBIT_AMOUNT': 'sum',
+    'CREDIT_AMOUNT': 'sum',
+    'PAYMENT_REFERENCE_NUMBER': 'count'
+}).rename(columns={'PAYMENT_REFERENCE_NUMBER': 'Number of Transactions'}).reset_index()
+
+print("Daily Summary Table:")
+print(daily_summary)
+
+# Visualization 1: Time Series Plot of Debits and Credits
+plt.figure(figsize=(12, 6))
+plt.plot(daily_summary['P_TXNDATE'], daily_summary['DEBIT_AMOUNT'], label='Debits', color='red')
+plt.plot(daily_summary['P_TXNDATE'], daily_summary['CREDIT_AMOUNT'], label='Credits', color='green')
+plt.title('Daily Debit and Credit Totals Over Time')
+plt.xlabel('Date')
+plt.ylabel('Amount (euros)')
+plt.legend()
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.show()
+
+# Visualization 2: Bar Chart of Transaction Counts
+plt.figure(figsize=(12, 6))
+plt.bar(daily_summary['P_TXNDATE'], daily_summary['Number of Transactions'], color='blue')
+plt.title('Number of Transactions Per Day')
+plt.xlabel('Date')
+plt.ylabel('Number of Transactions')
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.show()
+
+
+# Visualization 5: Heatmap of Daily Transaction Volume
+data['hour'] = data['P_TXNDATE'].dt.hour
+data['day_of_week'] = data['P_TXNDATE'].dt.day_name()
+heatmap_data = data.groupby(['day_of_week', 'hour']).size().unstack()
+
+plt.figure(figsize=(12, 8))
+sns.heatmap(heatmap_data, cmap='Blues', annot=True, fmt='d')
+plt.title('Transaction Volume by Day of Week and Hour')
+plt.xlabel('Hour of Day')
+plt.ylabel('Day of Week')
+plt.tight_layout()
+plt.show()
